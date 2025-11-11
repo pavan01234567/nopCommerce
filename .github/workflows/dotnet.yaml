@@ -26,9 +26,31 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
-      - name: publish .NET project
-        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
+      - name: aws configure
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws_secert_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws_region: ${{ env.AWS_REGION }}
+      - name: ECR login
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: build and push 
+        uses: docker/build-push-action@v6
+      - name: docker commands
+        run: |
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 000373574701.dkr.ecr.ap-south-1.amazonaws.com  
+          docker image build -t dotnetapp:1.0 .
+          docker image tag dotnetapp:1.0 000373574701.dkr.ecr.ap-south-1.amazonaws.com/petclinic/app:latest
+          docker push 000373574701.dkr.ecr.ap-south-1.amazonaws.com/petclinic/app:latest
+      - name: EKS with manifestfile 
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      - name: table/kubectl-action@v1
+        run: |
+          kubectl apply -f .
+          kubectl get pod 
 
-
+    
 
      
