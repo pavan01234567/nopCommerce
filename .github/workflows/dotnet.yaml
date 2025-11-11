@@ -3,7 +3,7 @@ name: mydotnet project
 on:
   push:
     branches:
-    
+
        - develop
 jobs:  
   dotnet_publish:
@@ -12,7 +12,7 @@ jobs:
          - name: code checkout
            uses: actions/checkout@v5 
          - name: this is my dotnet publish command
-           run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o /demo
+           run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
 
 
      
