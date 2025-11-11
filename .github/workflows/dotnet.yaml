@@ -1,3 +1,5 @@
+name: mydotnet project
+
 on:
   push:
     branches:
@@ -8,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: code checkout
+      - name: Code checkout
         uses: actions/checkout@v4
 
       - name: Set up .NET
@@ -18,39 +20,36 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
         with:
           args: >
             -Dsonar.organization=pavan01234567
             -Dsonar.projectKey=pavan01234567_nopCommerce
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
 
-      - name: aws configure
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         aws_secert_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         aws_region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
       - name: ECR login
         uses: aws-actions/amazon-ecr-login@v2
-      - name: build and push 
-        uses: docker/build-push-action@v6
-      - name: docker commands
+
+      - name: Build, Tag & Push Docker Image
         run: |
-          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 000373574701.dkr.ecr.ap-south-1.amazonaws.com  
-          docker image build -t dotnetapp:1.0 .
-          docker image tag dotnetapp:1.0 000373574701.dkr.ecr.ap-south-1.amazonaws.com/petclinic/app:latest
+          docker build -t dotnetapp:1.0 .
+          docker tag dotnetapp:1.0 000373574701.dkr.ecr.ap-south-1.amazonaws.com/petclinic/app:latest
           docker push 000373574701.dkr.ecr.ap-south-1.amazonaws.com/petclinic/app:latest
-      - name: EKS with manifestfile 
+
+      - name: Setup kubectl
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-      - name: table/kubectl-action@v1
+
+      - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f .
-          kubectl get pod 
-
-    
-
-     
+          kubectl get pods
