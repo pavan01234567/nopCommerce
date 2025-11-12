@@ -4,7 +4,7 @@ WORKDIR /task
 COPY ./ .
 RUN dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o /app/published
 
-# Runtime Stage
+# Run
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /runtask
 COPY --from=build /app/published ./
